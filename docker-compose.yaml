@@ -1,0 +1,46 @@
+version: '3.7'
+services:
+  agm-frontend:
+    image: anantakit/agm-app
+    container_name: agm-frontend
+    expose:
+      - 80    
+  docker_proxy:
+    image: nginx
+    container_name: docker_proxy
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: "agm"
+      MYSQL_ROOT_PASSWORD: "password"
+
+    command: mysqld --sql_mode="NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES" --collation_server="utf8_unicode_ci" --character_set_server="utf8"
+
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - my-db:/var/lib/mysql
+      - ./scripts:/docker-entrypoint-initdb.d/
+
+  agm:
+    image: registry.odds.team/agm/agm
+    ports:
+      - 8080:8080
+    depends_on:
+      - "db"
+
+  agm-service:
+    image: registry.odds.team/agm/agm-service
+    container_name: agm-service
+    ports:
+      - "2549:2549"
+
+volumes:
+  my-db:
