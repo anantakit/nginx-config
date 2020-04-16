@@ -4,7 +4,9 @@ services:
     image: anantakit/agm-app
     container_name: agm-frontend
     expose:
-      - 80    
+      - 80
+    depends_on:
+      - "db"    
   docker_proxy:
     image: nginx
     container_name: docker_proxy
@@ -12,6 +14,8 @@ services:
       - ./conf.d:/etc/nginx/conf.d
     ports:
       - "80:80"
+    depends_on:
+      - "db"
   db:
     image: mysql:5.7
     restart: always
@@ -29,18 +33,19 @@ services:
       - my-db:/var/lib/mysql
       - ./scripts:/docker-entrypoint-initdb.d/
 
-  agm:
+  agm-admin:
     image: registry.odds.team/agm/agm
     ports:
-      - 8080:8080
+      - "8080:8080"
+    container_name: agm-admin
     depends_on:
       - "db"
 
   agm-service:
     image: registry.odds.team/agm/agm-service
     container_name: agm-service
-    ports:
-      - "2549:2549"
+    depends_on:
+      - "db"
 
 volumes:
   my-db:
